@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Des 2023 pada 08.53
+-- Waktu pembuatan: 29 Des 2023 pada 09.55
 -- Versi server: 10.4.28-MariaDB
 -- Versi PHP: 8.2.4
 
@@ -29,9 +29,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `dt_prodi` (
   `idprodi` int(11) NOT NULL,
-  `kdprodi` varchar(6) NOT NULL,
-  `nmprodi` varchar(70) NOT NULL,
-  `akreditasi` enum('A','B','C','-') NOT NULL
+  `kdprodi` varchar(6) DEFAULT NULL,
+  `nmprodi` varchar(70) DEFAULT NULL,
+  `akreditasi` enum('A','B','C','-') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -39,8 +39,9 @@ CREATE TABLE `dt_prodi` (
 --
 
 INSERT INTO `dt_prodi` (`idprodi`, `kdprodi`, `nmprodi`, `akreditasi`) VALUES
-(0, '002', 'Perjalanan Wisata PW', 'B'),
-(1, '000000', 'Manajemen Informatika', '-');
+(1, '001', 'Manajemen Informatika MI', 'B'),
+(2, '002', 'Perjalanan Wisata PW', 'B'),
+(3, '003', 'Agribisnis', '-');
 
 -- --------------------------------------------------------
 
@@ -100,8 +101,7 @@ ALTER TABLE `dt_prodi`
 -- Indeks untuk tabel `mahasiswa`
 --
 ALTER TABLE `mahasiswa`
-  ADD PRIMARY KEY (`idmhs`),
-  ADD KEY `fk_mahasiswa_dt_prodi` (`idprodi`);
+  ADD PRIMARY KEY (`idmhs`);
 
 --
 -- Indeks untuk tabel `user`
@@ -114,20 +114,16 @@ ALTER TABLE `user`
 --
 
 --
+-- AUTO_INCREMENT untuk tabel `dt_prodi`
+--
+ALTER TABLE `dt_prodi`
+  MODIFY `idprodi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT untuk tabel `mahasiswa`
 --
 ALTER TABLE `mahasiswa`
   MODIFY `idmhs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
---
-
---
--- Ketidakleluasaan untuk tabel `mahasiswa`
---
-ALTER TABLE `mahasiswa`
-  ADD CONSTRAINT `fk_mahasiswa_dt_prodi` FOREIGN KEY (`idprodi`) REFERENCES `dt_prodi` (`idprodi`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
