@@ -1,6 +1,6 @@
 <?php
 session_start();
-require("../sistem/koneksi_pdo.php"); // Sesuaikan dengan nama file koneksi PDO
+require("../sistem/koneksi.php"); // Sesuaikan dengan nama file koneksi PDO
 
 $hub = open_connection();
 $usr = filter_input(INPUT_POST, 'usr', FILTER_SANITIZE_STRING);
