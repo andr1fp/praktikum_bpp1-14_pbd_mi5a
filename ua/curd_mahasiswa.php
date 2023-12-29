@@ -1,58 +1,3 @@
-<?php
-        session_start();
-        // Check if the user is logged in with appropriate credentials
-        if (!isset($_SESSION['username']) || ($_SESSION['jenisuser'] !== '0' && $_SESSION['level'] !== '11')) {
-            header("location: login.php"); // Redirect to the login page
-            exit;
-        }
-
-        require("../sistem/koneksi.php");
-        $hub = open_connection();
-        $a = isset($_GET["a"]) ? $_GET["a"] : '';
-        $id = isset($_GET["id"]) ? $_GET["id"] : '';
-        $sql = isset($_POST["sql"]) ? $_POST["sql"] : '';
-
-        switch ($sql) {
-            case "create":
-                create_mahasiswa();
-                break;
-            case "update":
-                update_mahasiswa();
-                break;
-            case "delete":
-                delete_mahasiswa();
-                break;
-        }
-
-        switch ($a) {
-            case "list":
-                read_data();
-                break;
-            case "input":
-                input_data();
-                break;
-            case "edit":
-                edit_data($id);
-                break;
-            case "hapus":
-                hapus_data($id);
-                break;
-            default:
-                read_data();
-                break;
-        }
-
-        mysqli_close($hub);
-
-        function read_data()
-        {
-            global $hub;
-            $query = "SELECT mahasiswa.*, dt_prodi.nmprodi 
-                      FROM mahasiswa
-                      INNER JOIN dt_prodi ON mahasiswa.idprodi = dt_prodi.idprodi";
-            $result = mysqli_query($hub, $query);
-            ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -224,45 +169,94 @@
 
 <body>
     <div class="container">
-            <h2>Read Data Mahasiswa</h2>
-            <table border=1 cellpadding=2>
-                <tr>
-                    <td colspan="5">
-                        <a href="curd_mahasiswa.php?a=input">INPUT</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>ID</td>
-                    <td>NPM</td>
-                    <td>Nama Mahasiswa</td>
-                    <td>Program Studi</td>
-                    <td>AKSI</td>
-                </tr>
-                <?php
-                while ($row = mysqli_fetch_array($result)) {
-                    ?>
-                    <tr>
-                        <td><?php echo $row['idmhs']; ?></td>
-                        <td><?php echo $row['npm']; ?></td>
-                        <td><?php echo $row['nama']; ?></td>
-                        <td><?php echo $row['nmprodi']; ?></td>
-                        <td>
-                            <a href="curd_mahasiswa.php?a=edit&id=<?php echo $row['idmhs']; ?>">EDIT</a>
-                            <a href="curd_mahasiswa.php?a=hapus&id=<?php echo $row['idmhs']; ?>">HAPUS</a>
-                        </td>
-                    </tr>
-                <?php
-            }
+    <?php
+        session_start();
+        // Check if the user is logged in with appropriate credentials
+        if (!isset($_SESSION['username']) || ($_SESSION['jenisuser'] !== '0' && $_SESSION['level'] !== '11')) {
+            header("location: login.php"); // Redirect to the login page
+            exit;
+        }
+
+        require("../sistem/koneksi.php");
+        $hub = open_connection();
+        $a = isset($_GET["a"]) ? $_GET["a"] : '';
+        $id = isset($_GET["id"]) ? $_GET["id"] : '';
+        $sql = isset($_POST["sql"]) ? $_POST["sql"] : '';
+
+        switch ($sql) {
+            case "create":
+                create_mahasiswa();
+                break;
+            case "update":
+                update_mahasiswa();
+                break;
+            case "delete":
+                delete_mahasiswa();
+                break;
+        }
+
+        switch ($a) {
+            case "list":
+                read_data();
+                break;
+            case "input":
+                input_data();
+                break;
+            case "edit":
+                edit_data($id);
+                break;
+            case "hapus":
+                hapus_data($id);
+                break;
+            default:
+                read_data();
+                break;
+        }
+
+        function read_data()
+        {
+            global $hub;
+            $query = "SELECT mahasiswa.*, dt_prodi.nmprodi 
+                      FROM mahasiswa
+                      INNER JOIN dt_prodi ON mahasiswa.idprodi = dt_prodi.idprodi";
+            $stmt = $hub->query($query);
+        ?>
+
+        <h2>Read Data Mahasiswa</h2>
+        <table border=1 cellpadding=2>
+        <tr><td colspan="5">
+        <a href="curd_mahasiswa.php?a=input">INPUT</a>
+        </td></tr>
+        <tr>
+            <td>ID</td>
+            <td>NPM</td>
+            <td>Nama Mahasiswa</td>
+            <td>Program Studi</td>
+            <td>AKSI</td></tr>
+        <?php
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             ?>
-            </table>
+            <tr>
+            <td><?php echo $row['idmhs']; ?></td>
+            <td><?php echo $row['npm']; ?></td>
+            <td><?php echo $row['nama']; ?></td>
+            <td><?php echo $row['nmprodi']; ?></td>
+            <td>
+            <a href="curd_mahasiswa.php?a=edit&id=<?php echo $row['idmhs']; ?>">EDIT</a>
+            <a href="curd_mahasiswa.php?a=hapus&id=<?php echo $row['idmhs']; ?>">HAPUS</a>
+            </td>
+            </tr>
+            <?php
+        }
+        ?>
+        </table>
         <?php
     }
 
-    function input_data()
-    {
+    function input_data() {
         global $hub;
         $query_prodi = "SELECT * FROM dt_prodi";
-        $result_prodi = mysqli_query($hub, $query_prodi);
+        $stmt_prodi = $hub->query($query_prodi);
         $row = array(
             "npm" => "",
             "nama" => "",
@@ -271,135 +265,143 @@
         ?>
         <h2>Input Data Mahasiswa</h2>
         <form action="curd_mahasiswa.php?a=list" method="post" class="form-input">
-            <input type="hidden" name="sql" value="create">
-            <label for="npm">NPM:</label>
-            <input type="text" name="npm" id="npm" maxlength="8" size="8"
-                value="<?php echo htmlspecialchars(trim($row["npm"])); ?>" required /><br>
-            <label for="nama">Nama Mahasiswa:</label>
-            <input type="text" name="nama" id="nama" maxlength="50" size="50"
-                value="<?php echo htmlspecialchars(trim($row["nama"])); ?>" required /><br>
-            <label>Program Studi:</label>
-            <?php
-            while ($prodi = mysqli_fetch_array($result_prodi)) {
-                ?>
-                <input type="radio" name="idprodi"
-                    value="<?php echo $prodi['idprodi']; ?>"<?php if ($row["idprodi"] == $prodi['idprodi']) {
-                                                                                                    echo "checked";
-                                                                                                } ?>>
-                <?php echo $prodi['nmprodi']; ?>
-            <?php
+        <input type="hidden" name="sql" value="create">
+        <label for="npm">NPM:</label>
+        <input type="text" name="npm" id="npm" maxlength="8" size="8"
+            value="<?php echo htmlspecialchars(trim($row["npm"])); ?>" required /><br>
+        <label for="nama">Nama Mahasiswa:</label>
+        <input type="text" name="nama" id="nama" maxlength="50" size="50"
+            value="<?php echo htmlspecialchars(trim($row["nama"])); ?>" required /><br>
+        <label>Program Studi:</label>
+        <?php
+        while($prodi = $stmt_prodi->fetch(PDO::FETCH_ASSOC)) {
+            ?>
+            <input type="radio" name="idprodi"
+                value="<?php echo $prodi['idprodi']; ?>" <?php if($row["idprodi"] == $prodi['idprodi']) { echo "checked"; } ?>>
+            <?php echo $prodi['nmprodi']; ?>
+        <?php
         }
         ?>
-            <br><input type="submit" name="action" value="Simpan">
-            <a href="curd_mahasiswa.php?a=list">Batal</a>
+        <br><input type="submit" name="action" value="Simpan">
+        <a href="curd_mahasiswa.php?a=list">Batal</a>
         </form>
-    <?php
+        <?php
     }
 
-    function edit_data($id)
-    {
+    function edit_data($id) {
         global $hub;
         $query_prodi = "SELECT * FROM dt_prodi";
-        $result_prodi = mysqli_query($hub, $query_prodi);
-        $query = "SELECT * FROM mahasiswa WHERE idmhs = $id";
-        $result = mysqli_query($hub, $query);
-        $row = mysqli_fetch_array($result);
+        $stmt_prodi = $hub->query($query_prodi);
+        $query = "SELECT * FROM mahasiswa WHERE idmhs = :id";
+        $stmt = $hub->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         ?>
         <h2>Edit Data Mahasiswa</h2>
         <form action="curd_mahasiswa.php?a=list" method="post" class="form-input">
-            <input type="hidden" name="sql" value="update">
-            <input type="hidden" name="idmhs" value="<?php echo htmlspecialchars($id); ?>">
-            <label for="npm">NPM:</label>
-            <input type="text" name="npm" id="npm" maxlength="8" size="8"
-                value="<?php echo htmlspecialchars($row["npm"]); ?>" required /><br>
-            <label for="nama">Nama Mahasiswa:</label>
-            <input type="text" name="nama" id="nama" maxlength="50" size="50"
-                value="<?php echo htmlspecialchars($row["nama"]); ?>" required /><br>
-            <label>Program Studi:</label>
-            <?php
-            while ($prodi = mysqli_fetch_array($result_prodi)) {
-                ?>
-                <input type="radio" name="idprodi"
-                value="<?php echo $prodi['idprodi']; ?>" <?php if ($row["idprodi"] == $prodi['idprodi']) {
-                                                                                                    echo "checked";
-                                                                                                } ?>>
-                <?php echo $prodi['nmprodi']; ?>
-            <?php
+        <input type="hidden" name="sql" value="update">
+        <input type="hidden" name="idmhs" value="<?php echo htmlspecialchars($id); ?>">
+        <label for="npm">NPM:</label>
+        <input type="text" name="npm" id="npm" maxlength="8" size="8"
+            value="<?php echo htmlspecialchars($row["npm"]); ?>" required /><br>
+        <label for="nama">Nama Mahasiswa:</label>
+        <input type="text" name="nama" id="nama" maxlength="50" size="50"
+            value="<?php echo htmlspecialchars($row["nama"]); ?>" required /><br>
+        <label>Program Studi:</label>
+        <?php
+        while($prodi = $stmt_prodi->fetch(PDO::FETCH_ASSOC)) {
+            ?>
+            <input type="radio" name="idprodi"
+                value="<?php echo $prodi['idprodi']; ?>" <?php if($row["idprodi"] == $prodi['idprodi']) { echo "checked"; } ?>>
+            <?php echo $prodi['nmprodi']; ?>
+        <?php
         }
         ?>
-            <br><input type="submit" name="action" value="Simpan">
-            <a href="curd_mahasiswa.php?a=list">Batal</a>
+        <br><input type="submit" name="action" value="Simpan">
+        <a href="curd_mahasiswa.php?a=list">Batal</a>
         </form>
-    <?php
+        <?php
     }
 
-    function hapus_data($id)
-    {
+    function hapus_data($id) {
         global $hub;
         $query_prodi = "SELECT * FROM dt_prodi";
-        $result_prodi = mysqli_query($hub, $query_prodi);
-        $query = "SELECT * FROM mahasiswa WHERE idmhs = $id";
-        $result = mysqli_query($hub, $query);
-        $row = mysqli_fetch_array($result);
+        $stmt_prodi = $hub->query($query_prodi);
+        $query = "SELECT * FROM mahasiswa WHERE idmhs = :id";
+        $stmt = $hub->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         ?>
         <h2>Hapus Data Mahasiswa</h2>
         <form action="curd_mahasiswa.php?a=list" method="post" class="form-input">
-            <input type="hidden" name="sql" value="delete">
-            <input type="hidden" name="idmhs" value="<?php echo htmlspecialchars($id); ?>">
-            <table>
-                <tr>
-                    <td width=100>NPM</td>
-                    <td><?php echo htmlspecialchars($row["npm"]); ?></td>
-                </tr>
-                <tr>
-                    <td>Nama Mahasiswa</td>
-                    <td><?php echo htmlspecialchars($row["nama"]); ?></td>
-                </tr>
-                <tr>
-                    <td>Program Studi</td>
-                    <td><?php echo htmlspecialchars($row["idprodi"]); ?></td>
-                </tr>
-            </table>
-            <br><input type="submit" name="action" value="Hapus">
-            <a href="curd_mahasiswa.php?a=list">Batal</a>
+        <input type="hidden" name="sql" value="delete">
+        <input type="hidden" name="idmhs" value="<?php echo htmlspecialchars($id); ?>">
+        <table>
+        <tr><td width=100>NPM</td><td><?php echo htmlspecialchars($row["npm"]); ?></td></tr>
+        <tr><td>Nama Mahasiswa</td><td><?php echo htmlspecialchars($row["nama"]); ?></td></tr>
+        <tr><td>Program Studi</td><td><?php echo htmlspecialchars($row["idprodi"]); ?></td></tr>
+        </table>
+        <br><input type="submit" name="action" value="Hapus">
+        <a href="curd_mahasiswa.php?a=list">Batal</a>
         </form>
-    <?php
+        <?php
     }
 
-    function create_mahasiswa()
-    {
+    function create_mahasiswa() {
         global $hub;
         global $_POST;
-        $npm = mysqli_real_escape_string($hub, $_POST["npm"]);
-        $nama = mysqli_real_escape_string($hub, $_POST["nama"]);
-        $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
+        $npm = $_POST["npm"];
+        $nama = $_POST["nama"];
+        $idprodi = $_POST["idprodi"];
 
-        $query  = "INSERT INTO `mahasiswa` (`npm`, `nama`, `idprodi`) VALUES ";
-        $query .= "('$npm', '$nama', '$idprodi')";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "INSERT INTO `mahasiswa` (`npm`, `nama`, `idprodi`) VALUES (:npm, :nama, :idprodi)";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':npm', $npm, PDO::PARAM_STR);
+            $stmt->bindParam(':nama', $nama, PDO::PARAM_STR);
+            $stmt->bindParam(':idprodi', $idprodi, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
-    function update_mahasiswa()
-    {
+    function update_mahasiswa() {
         global $hub;
         global $_POST;
-        $idmhs = mysqli_real_escape_string($hub, $_POST["idmhs"]);
-        $npm = mysqli_real_escape_string($hub, $_POST["npm"]);
-        $nama = mysqli_real_escape_string($hub, $_POST["nama"]);
-        $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
+        $idmhs = $_POST["idmhs"];
+        $npm = $_POST["npm"];
+        $nama = $_POST["nama"];
+        $idprodi = $_POST["idprodi"];
 
-        $query  = "UPDATE `mahasiswa` SET npm='$npm', nama='$nama', idprodi='$idprodi' WHERE idmhs=$idmhs";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "UPDATE `mahasiswa` SET npm=:npm, nama=:nama, idprodi=:idprodi WHERE idmhs=:idmhs";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':idmhs', $idmhs, PDO::PARAM_INT);
+            $stmt->bindParam(':npm', $npm, PDO::PARAM_STR);
+            $stmt->bindParam(':nama', $nama, PDO::PARAM_STR);
+            $stmt->bindParam(':idprodi', $idprodi, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
-    function delete_mahasiswa()
-    {
+    function delete_mahasiswa() {
         global $hub;
         global $_POST;
-        $idmhs = mysqli_real_escape_string($hub, $_POST["idmhs"]);
+        $idmhs = $_POST["idmhs"];
 
-        $query  = "DELETE FROM `mahasiswa` WHERE idmhs=$idmhs";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "DELETE FROM `mahasiswa` WHERE idmhs=:idmhs";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':idmhs', $idmhs, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
     ?>
     </div>

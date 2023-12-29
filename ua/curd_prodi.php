@@ -213,13 +213,11 @@
                 break;
         }
 
-        mysqli_close($hub);
-
         function read_data()
         {
             global $hub;
             $query = "SELECT * FROM dt_prodi";
-            $result = mysqli_query($hub, $query);
+            $result = $hub->query($query);
         ?>
 
         <h2>Read Data Program Studi</h2>
@@ -234,7 +232,7 @@
             <td>AKREDITASI</td>
             <td>AKSI</td></tr>
         <?php
-        while($row = mysqli_fetch_array($result)) {
+        while($row = $result->fetch(PDO::FETCH_ASSOC)) {
             ?>
             <tr>
             <td><?php echo $row['idprodi']; ?></td>
@@ -286,9 +284,11 @@
 
     function edit_data($id) {
         global $hub;
-        $query = "SELECT * FROM dt_prodi WHERE idprodi = $id";
-        $result = mysqli_query($hub, $query);
-        $row = mysqli_fetch_array($result);
+        $query = "SELECT * FROM dt_prodi WHERE idprodi = :id";
+        $stmt = $hub->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         ?>
         <h2>Edit Data Program Studi</h2>
         <form action="curd_prodi.php?a=list" method="post" class="form-input">
@@ -318,9 +318,11 @@
 
     function hapus_data($id) {
         global $hub;
-        $query = "SELECT * FROM dt_prodi WHERE idprodi = $id";
-        $result = mysqli_query($hub, $query);
-        $row = mysqli_fetch_array($result);
+        $query = "SELECT * FROM dt_prodi WHERE idprodi = :id";
+        $stmt = $hub->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         ?>
         <h2>Hapus Data Program Studi</h2>
         <form action="curd_prodi.php?a=list" method="post" class="form-input">
@@ -340,34 +342,56 @@
     function create_prodi() {
         global $hub;
         global $_POST;
-        $kdprodi = mysqli_real_escape_string($hub, $_POST["kdprodi"]);
-        $nmprodi = mysqli_real_escape_string($hub, $_POST["nmprodi"]);
-        $akreditasi = mysqli_real_escape_string($hub, $_POST["akreditasi"]);
+        $kdprodi = $_POST["kdprodi"];
+        $nmprodi = $_POST["nmprodi"];
+        $akreditasi = $_POST["akreditasi"];
 
-        $query  = "INSERT INTO `dt_prodi` (`kdprodi`, `nmprodi`, `akreditasi`) VALUES ";
-        $query .= "('$kdprodi', '$nmprodi', '$akreditasi')";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "INSERT INTO `dt_prodi` (`kdprodi`, `nmprodi`, `akreditasi`) VALUES (:kdprodi, :nmprodi, :akreditasi)";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':kdprodi', $kdprodi, PDO::PARAM_STR);
+            $stmt->bindParam(':nmprodi', $nmprodi, PDO::PARAM_STR);
+            $stmt->bindParam(':akreditasi', $akreditasi, PDO::PARAM_STR);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
     function update_prodi() {
         global $hub;
         global $_POST;
-        $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
-        $kdprodi = mysqli_real_escape_string($hub, $_POST["kdprodi"]);
-        $nmprodi = mysqli_real_escape_string($hub, $_POST["nmprodi"]);
-        $akreditasi = mysqli_real_escape_string($hub, $_POST["akreditasi"]);
+        $idprodi = $_POST["idprodi"];
+        $kdprodi = $_POST["kdprodi"];
+        $nmprodi = $_POST["nmprodi"];
+        $akreditasi = $_POST["akreditasi"];
 
-        $query  = "UPDATE `dt_prodi` SET kdprodi='$kdprodi', nmprodi='$nmprodi', akreditasi='$akreditasi' WHERE idprodi=$idprodi";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "UPDATE `dt_prodi` SET kdprodi=:kdprodi, nmprodi=:nmprodi, akreditasi=:akreditasi WHERE idprodi=:idprodi";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':idprodi', $idprodi, PDO::PARAM_INT);
+            $stmt->bindParam(':kdprodi', $kdprodi, PDO::PARAM_STR);
+            $stmt->bindParam(':nmprodi', $nmprodi, PDO::PARAM_STR);
+            $stmt->bindParam(':akreditasi', $akreditasi, PDO::PARAM_STR);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
     function delete_prodi() {
         global $hub;
         global $_POST;
-        $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
+        $idprodi = $_POST["idprodi"];
 
-        $query  = "DELETE FROM `dt_prodi` WHERE idprodi=$idprodi";
-        mysqli_query($hub, $query) or die(mysqli_error($hub));
+        try {
+            $query = "DELETE FROM `dt_prodi` WHERE idprodi=:idprodi";
+            $stmt = $hub->prepare($query);
+            $stmt->bindParam(':idprodi', $idprodi, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
     ?>
     </div>
