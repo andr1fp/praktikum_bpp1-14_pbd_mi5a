@@ -129,7 +129,7 @@
             exit;
         }
 
-        require("../sistem/koneksi.php");
+        require("../sistem/koneksi.php"); // Adjust the file name based on your PDO connection
         $hub = open_connection();
         $a = isset($_GET["a"]) ? $_GET["a"] : '';
         $id = isset($_GET["id"]) ? $_GET["id"] : '';
@@ -165,13 +165,13 @@
                 break;
         }
 
-        mysqli_close($hub);
+        $hub = null; // Close the PDO connection
 
         function read_data()
         {
             global $hub;
             $query = "SELECT * FROM user";
-            $result = mysqli_query($hub, $query);
+            $stmt = $hub->query($query);
             ?>
             <h2>User Management</h2>
             <table border=1 cellpadding=2>
@@ -191,7 +191,7 @@
                     <td>Aksi</td>
                 </tr>
                 <?php
-                while ($row = mysqli_fetch_array($result)) {
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     ?>
                     <tr>
                         <td><?php echo $row['iduser']; ?></td>
@@ -261,8 +261,9 @@ function edit_data($id)
 {
     global $hub;
     $query = "SELECT * FROM user WHERE iduser = $id";
-    $result = mysqli_query($hub, $query);
-    $row = mysqli_fetch_array($result);
+    $stmt = $hub->prepare($query);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     ?>
         <h2>Edit User</h2>
         <form action="curd_user.php?a=list" method="post" class="form-input">
@@ -302,8 +303,9 @@ function hapus_data($id)
 {
     global $hub;
     $query = "SELECT * FROM user WHERE iduser = $id";
-    $result = mysqli_query($hub, $query);
-    $row = mysqli_fetch_array($result);
+    $stmt = $hub->prepare($query);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     ?>
         <h2>Hapus User</h2>
         <form action="curd_user.php?a=list" method="post" class="form-input">
@@ -345,45 +347,62 @@ function create_user()
 {
     global $hub;
     global $_POST;
-    $username = mysqli_real_escape_string($hub, $_POST["username"]);
-    $password = mysqli_real_escape_string($hub, $_POST["password"]);
-    $jenisuser = mysqli_real_escape_string($hub, $_POST["jenisuser"]);
-    $level = mysqli_real_escape_string($hub, $_POST["level"]);
-    $status = mysqli_real_escape_string($hub, $_POST["status"]);
-    $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
+    $username = htmlspecialchars(trim($_POST["username"]));
+    $password = htmlspecialchars(trim($_POST["password"]));
+    $jenisuser = htmlspecialchars(trim($_POST["jenisuser"]));
+    $level = htmlspecialchars(trim($_POST["level"]));
+    $status = htmlspecialchars(trim($_POST["status"]));
+    $idprodi = htmlspecialchars(trim($_POST["idprodi"]));
 
     $query  = "INSERT INTO `user` (`username`, `password`, `jenisuser`, `level`, `status`, `idprodi`) VALUES ";
-    $query .= "('$username', '$password', '$jenisuser', '$level', '$status', $idprodi)";
-    mysqli_query($hub, $query) or die(mysqli_error($hub));
+    $query .= "(:username, :password, :jenisuser, :level, :status, :idprodi)";
+    $stmt = $hub->prepare($query);
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':password', $password);
+    $stmt->bindParam(':jenisuser', $jenisuser);
+    $stmt->bindParam(':level', $level);
+    $stmt->bindParam(':status', $status);
+    $stmt->bindParam(':idprodi', $idprodi);
+    $stmt->execute();
 }
 
 function update_user()
 {
     global $hub;
     global $_POST;
-    $iduser = mysqli_real_escape_string($hub, $_POST["iduser"]);
-    $username = mysqli_real_escape_string($hub, $_POST["username"]);
-    $password = mysqli_real_escape_string($hub, $_POST["password"]);
-    $jenisuser = mysqli_real_escape_string($hub, $_POST["jenisuser"]);
-    $level = mysqli_real_escape_string($hub, $_POST["level"]);
-    $status = mysqli_real_escape_string($hub, $_POST["status"]);
-    $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
+    $iduser = htmlspecialchars(trim($_POST["iduser"]));
+    $username = htmlspecialchars(trim($_POST["username"]));
+    $password = htmlspecialchars(trim($_POST["password"]));
+    $jenisuser = htmlspecialchars(trim($_POST["jenisuser"]));
+    $level = htmlspecialchars(trim($_POST["level"]));
+    $status = htmlspecialchars(trim($_POST["status"]));
+    $idprodi = htmlspecialchars(trim($_POST["idprodi"]));
 
-    $query  = "UPDATE `user` SET username='$username', password='$password', jenisuser='$jenisuser', level='$level', status='$status', idprodi=$idprodi WHERE iduser=$iduser";
-    mysqli_query($hub, $query) or die(mysqli_error($hub));
+    $query  = "UPDATE `user` SET username=:username, password=:password,
+                jenisuser=:jenisuser, level=:level, status=:status, idprodi=:idprodi WHERE iduser=:iduser";
+    $stmt = $hub->prepare($query);
+    $stmt->bindParam(':iduser', $iduser);
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':password', $password);
+    $stmt->bindParam(':jenisuser', $jenisuser);
+    $stmt->bindParam(':level', $level);
+    $stmt->bindParam(':status', $status);
+    $stmt->bindParam(':idprodi', $idprodi);
+    $stmt->execute();
 }
 
 function delete_user()
 {
     global $hub;
     global $_POST;
-    $iduser = mysqli_real_escape_string($hub, $_POST["iduser"]);
+    $iduser = htmlspecialchars(trim($_POST["iduser"]));
 
-    $query  = "DELETE FROM `user` WHERE iduser=$iduser";
-    mysqli_query($hub, $query) or die(mysqli_error($hub));
+    $query  = "DELETE FROM `user` WHERE iduser=:iduser";
+    $stmt = $hub->prepare($query);
+    $stmt->bindParam(':iduser', $iduser);
+    $stmt->execute();
 }
 ?>
     </div>
 </body>
-
 </html>

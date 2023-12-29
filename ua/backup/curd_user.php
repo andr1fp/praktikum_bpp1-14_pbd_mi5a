@@ -369,7 +369,8 @@ function update_user()
     $status = mysqli_real_escape_string($hub, $_POST["status"]);
     $idprodi = mysqli_real_escape_string($hub, $_POST["idprodi"]);
 
-    $query  = "UPDATE `user` SET username='$username', password='$password', jenisuser='$jenisuser', level='$level', status='$status', idprodi=$idprodi WHERE iduser=$iduser";
+    $query  = "UPDATE `user` SET username='$username', password='$password',
+                jenisuser='$jenisuser', level='$level', status='$status', idprodi=$idprodi WHERE iduser=$iduser";
     mysqli_query($hub, $query) or die(mysqli_error($hub));
 }
 
